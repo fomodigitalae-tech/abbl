@@ -134,7 +134,7 @@ app.post('/api/presence', async (req, res) => {
 app.get('/api/visitors/active', async (req, res) => {
   try {
     if (!isAdmin(req)) return res.status(401).json({ count: 0 });
-    const cutoff = Date.now() - 15000;
+    const cutoff = Date.now() - 30000;
     const { data } = await supabase.from('visitors').select('*').gt('last_active_at', cutoff);
     res.json({ count: (data || []).length, visitors: data || [] });
   } catch (err) {
